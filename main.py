@@ -1,12 +1,11 @@
 import os
 import logging
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, InputMediaPhoto
 from aiogram import Bot, Dispatcher, types, F
 from aiogram.filters import Command
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.storage.memory import MemoryStorage
-from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
+from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InputMediaPhoto
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -17,430 +16,157 @@ bot = Bot(token=TOKEN)
 storage = MemoryStorage()
 dp = Dispatcher(storage=storage)
 
-# ---------------- Profiles data (10 female profiles) ----------------
-# Здесь три file_id для каждой анкеты: 'photo1', 'photo2', 'photo3'.
-# Пока стоят заглушки FILE_ID_x_x — нужно заменить на реальные file_id.
-#
-# Структура: profiles = [ { "display_name": "Девушка 1", "photos": ["FILE_ID_1_1", "FILE_ID_1_2", "FILE_ID_1_3"],
-#                           "age": "ххххх", "height": "ххххх", "weight": "ххххх", "hobby": "ххххх" }, ... ]
-#
-# Замени FILE_ID_... на реальные file_id (см. инструкции ниже)
+# ============================== 25 АНКЕТ ПОЛНОСТЬЮ ==============================
 PROFILES = [
-    {
-        "display_name": "Isabella",
-        "photos": ["AgACAgIAAxkBAAIp62kjmq0FPuThO0moY4NE4lUDH4vSAAIZEmsbCvcYSV-2bf2jLKxPAQADAgADeQADNgQ", "AgACAgIAAxkBAAIp9Wkjm6yPZxlZRJJ00T4uWPLQLHvRAAIaEmsbCvcYSeNs4oe6HwpxAQADAgADeQADNgQ", "AgACAgIAAxkBAAIp92kjm-pX3R-iv0nwlUNlpkB3WbBkAAIbEmsbCvcYSdcHtieESmB-AQADAgADeQADNgQ"],
-        "age": "21",
-        "height": "177",
-        "weight": "60",
-        "hobby": "shopping, big foodie",
-    },
-    {
-        "display_name": "Amelia",
-        "photos": ["AgACAgIAAxkBAAIqL2kjn1zyn_8S-LDV5sHYZYGee63OAAIiEmsbCvcYSX2NP5mIcyRRAQADAgADeQADNgQ", "AgACAgIAAxkBAAIqMWkjn4Zw-PAdb1kegKuxWpzGhCdPAAIjEmsbCvcYSepo5B-hKRSOAQADAgADeQADNgQ", "AgACAgIAAxkBAAIqM2kjn7hOHgVLEgmzTE8Hig2ZXF4pAAIkEmsbCvcYSdrFlOVkUKsvAQADAgADeQADNgQ"],
-        "age": "25",
-        "height": "170",
-        "weight": "49",
-        "hobby": "dancing, traveling, walking, shopping",
-    },
-    {
-        "display_name": "Alexandra",
-        "photos": ["AgACAgIAAxkBAAIqNWkjoK7GewV6Xx1UgDHpJBu-iv9tAAImEmsbCvcYSaTvlf-xGgbgAQADAgADeQADNgQ", "AgACAgIAAxkBAAIqN2kjoO66AYlF_Myi7xGIhBfzwKmIAAInEmsbCvcYSdzc77ZEmTMCAQADAgADeQADNgQ", "AgACAgIAAxkBAAIqOWkjoRAt03KBHDkpCzJzdv6GpiDYAAIoEmsbCvcYSRgQsSPdA-wtAQADAgADeQADNgQ"],
-        "age": "21",
-        "height": "175",
-        "weight": "48",
-        "hobby": "tennis, padel",
-    },
-    {
-        "display_name": "Sasha",
-        "photos": ["AgACAgIAAxkBAAIqO2kjo-QeKF1ukGgPK1C3BUw41dKHAAIpEmsbCvcYSbPJtqK0dMhoAQADAgADeQADNgQ", "AgACAgIAAxkBAAIqPWkjpEPGM0Bcdy3eo7Rau1CUR_0jAAIqEmsbCvcYSSP-CFu0hLCmAQADAgADeQADNgQ", "AgACAgIAAxkBAAIqP2kjpGA91607651XC9bI1uf8GA2OAAIsEmsbCvcYSa3cQSE5ARTMAQADAgADeQADNgQ"],
-        "age": "25",
-        "height": "173",
-        "weight": "52",
-        "hobby": "reading, dancing, getting a second higher education",
-    },
-    {
-        "display_name": "Polina",
-        "photos": ["AgACAgIAAxkBAAIqQWkjpPvtaFfNy1NqpoeFK7n5BYj4AAIuEmsbCvcYSRZWcqyU1PL1AQADAgADeQADNgQ", "AgACAgIAAxkBAAIqQ2kjpRZOzu2_4fPzS02CnI60AAHKQQACLxJrGwr3GElUJ1_VF5uFKgEAAwIAA3kAAzYE", "AgACAgIAAxkBAAIqRWkjpTHIFB23hLDj-ODEUKZMWAhaAAIwEmsbCvcYSTQfMbcAAWXPpwEAAwIAA3kAAzYE"],
-        "age": "24",
-        "height": "164",
-        "weight": "44",
-        "hobby": "drumming, painting, tantra master",
-    },
-    {
-        "display_name": "Девушка 6",
-        "photos": ["FILE_ID_6_1", "FILE_ID_6_2", "FILE_ID_6_3"],
-        "age": "ххххх",
-        "height": "ххххх",
-        "weight": "ххххх",
-        "hobby": "ххххх",
-    },
-    {
-        "display_name": "Девушка 7",
-        "photos": ["FILE_ID_7_1", "FILE_ID_7_2", "FILE_ID_7_3"],
-        "age": "ххххх",
-        "height": "ххххх",
-        "weight": "ххххх",
-        "hobby": "ххххх",
-    },
-    {
-        "display_name": "Девушка 8",
-        "photos": ["FILE_ID_8_1", "FILE_ID_8_2", "FILE_ID_8_3"],
-        "age": "ххххх",
-        "height": "ххххх",
-        "weight": "ххххх",
-        "hobby": "ххххх",
-    },
-    {
-        "display_name": "Девушка 9",
-        "photos": ["FILE_ID_9_1", "FILE_ID_9_2", "FILE_ID_9_3"],
-        "age": "ххххх",
-        "height": "ххххх",
-        "weight": "ххххх",
-        "hobby": "ххххх",
-    },
-    {
-        "display_name": "Девушка 10",
-        "photos": ["FILE_ID_10_1", "FILE_ID_10_2", "FILE_ID_10_3"],
-        "age": "ххххх",
-        "height": "ххххх",
-        "weight": "ххххх",
-        "hobby": "ххххх",
-    },
+    {"display_name": "Isabella", "username": "isabella_dubai", "photos": ["AgACAgIAAxkBAAIp62kjmq0FPuThO0moY4NE4lUDH4vSAAIZEmsbCvcYSV-2bf2jLKxPAQADAgADeQADNgQ","AgACAgIAAxkBAAIp9Wkjm6yPZxlZRJJ00T4uWPLQLHvRAAIaEmsbCvcYSeNs4oe6HwpxAQADAgADeQADNgQ","AgACAgIAAxkBAAIp92kjm-pX3R-iv0nwlUNlpkB3WbBkAAIbEmsbCvcYSdcHtieESmB-AQADAgADeQADNgQ"], "age": "21", "height": "177", "weight": "60", "hobby": "shopping, big foodie"},
+    {"display_name": "Amelia", "username": "amelia_in_dubai", "photos": ["AgACAgIAAxkBAAIqL2kjn1zyn_8S-LDV5sHYZYGee63OAAIiEmsbCvcYSX2NP5mIcyRRAQADAgADeQADNgQ","AgACAgIAAxkBAAIqMWkjn4Zw-PAdb1kegKuxWpzGhCdPAAIjEmsbCvcYSepo5B-hKRSOAQADAgADeQADNgQ","AgACAgIAAxkBAAIqM2kjn7hOHgVLEgmzTE8Hig2ZXF4pAAIkEmsbCvcYSdrFlOVkUKsvAQADAgADeQADNgQ"], "age": "25", "height": "170", "weight": "49", "hobby": "dancing, traveling, walking, shopping"},
+    {"display_name": "Alexandra", "username": "alexandra_dubai", "photos": ["AgACAgIAAxkBAAIqNWkjoK7GewV6Xx1UgDHpJBu-iv9tAAImEmsbCvcYSaTvlf-xGgbgAQADAgADeQADNgQ","AgACAgIAAxkBAAIqN2kjoO66AYlF_Myi7xGIhBfzwKmIAAInEmsbCvcYSdzc77ZEmTMCAQADAgADeQADNgQ","AgACAgIAAxkBAAIqOWkjoRAt03KBHDkpCzJzdv6GpiDYAAIoEmsbCvcYSRgQsSPdA-wtAQADAgADeQADNgQ"], "age": "21", "height": "175", "weight": "48", "hobby": "tennis, padel"},
+    {"display_name": "Sasha", "username": "sasha_dxb", "photos": ["AgACAgIAAxkBAAIqO2kjo-QeKF1ukGgPK1C3BUw41dKHAAIpEmsbCvcYSbPJtqK0dMhoAQADAgADeQADNgQ","AgACAgIAAxkBAAIqPWkjpEPGM0Bcdy3eo7Rau1CUR_0jAAIqEmsbCvcYSSP-CFu0hLCmAQADAgADeQADNgQ","AgACAgIAAxkBAAIqP2kjpGA91607651XC9bI1uf8GA2OAAIsEmsbCvcYSa3cQSE5ARTMAQADAgADeQADNgQ"], "age": "25", "height": "173", "weight": "52", "hobby": "reading, dancing, getting a second higher education"},
+    {"display_name": "Polina", "username": "polina_tantra", "photos": ["AgACAgIAAxkBAAIqQWkjpPvtaFfNy1NqpoeFK7n5BYj4AAIuEmsbCvcYSRZWcqyU1PL1AQADAgADeQADNgQ","AgACAgIAAxkBAAIqQ2kjpRZOzu2_4fPzS02CnI60AAHKQQACLxJrGwr3GElUJ1_VF5uFKgEAAwIAA3kAAzYE","AgACAgIAAxkBAAIqRWkjpTHIFB23hLDj-ODEUKZMWAhaAAIwEmsbCvcYSTQfMbcAAWXPpwEAAwIAA3kAAzYE"], "age": "24", "height": "164", "weight": "44", "hobby": "drumming, painting, tantra master"},
+    {"display_name": "Lina", "username": "lina_pilates", "photos": ["AgACAgIAAxkBAAIr1WkxyKOf0lrM0Y1tjQLiOK2cZUWmAAJiDGsb7W6QSVxV3XjLealhAQADAgADeQADNgQ","AgACAgIAAxkBAAIr_GkxzCd3ji7CSkwYEtleq91dA2l7AAJ7DGsb7W6QSfhzTVGGRBteAQADAgADeQADNgQ","AgACAgIAAxkBAAIr_WkxzCfD4qdCY5U40nA_vStF7jyCAAJ8DGsb7W6QSeswWOsI0opbAQADAgADeQADNgQ"], "age": "23", "height": "161", "weight": "49", "hobby": "Pilates, photography"},
+    {"display_name": "Yana", "username": "yana_travel", "photos": ["AgACAgIAAxkBAAIsAAFpMdZO2XJvs0nQrCAvWg3I4ViUJwAC_w9rG0RgkElRayOesOcH-gEAAwIAA3kAAzYE","AgACAgIAAxkBAAIsAmkx1k6hHpXPkZkEMnQlnk-2n3jgAAIBEGsbRGCQSYOE_LqE2GliAQADAgADeQADNgQ","AgACAgIAAxkBAAIsAWkx1k4W33y79WZnrxzG8wbBX1QKAAMQaxtEYJBJT3x2vEXrRD0BAAMCAAN4AAM2BA"], "age": "24", "height": "164", "weight": "58", "hobby": "Travel"},
+    {"display_name": "Freya", "username": "freya_swim", "photos": ["AgACAgIAAxkBAAIsBmkx1oJSO2Hl_zpcv18lk9Usj6v_AAIDEGsbRGCQSSAURHTW9ZXBAQADAgADeQADNgQ","AgACAgIAAxkBAAIsCGkx1oIkxikE7PE4Qn_jP82yT6PbAAIEEGsbRGCQSY2AAt0Wtk9mAQADAgADeQADNgQ","AgACAgIAAxkBAAIsB2kx1oJJWTmtV4gWNDUuJ94_iebMAAICEGsbRGCQSfJjR_E0MQY7AQADAgADeQADNgQ"], "age": "22", "height": "177", "weight": "58", "hobby": "Swimming"},
+    {"display_name": "Kaily", "username": "kaily_fit", "photos": ["AgACAgIAAxkBAAIsDmkx1qLIE7NBqIIuC7ydfoZUulZZAAIFEGsbRGCQSc5DkU3_zhsKAQADAgADeQADNgQ","AgACAgIAAxkBAAIsDGkx1qKk-QwrYAP-h87ruB7ZUzxmAAIGEGsbRGCQSaXcjXT-uAjRAQADAgADeQADNgQ","AgACAgIAAxkBAAIsDWkx1qKxwjtAPbxVqmPMIxC1UtfKAAIHEGsbRGCQScnd1Z8xdKGZAQADAgADeQADNgQ"], "age": "21", "height": "173", "weight": "53", "hobby": "Fitness"},
+    {"display_name": "Mishel", "username": "mishel_sport", "photos": ["AgACAgIAAxkBAAIsEmkx1sVPUv2JagPE6pmYumwTlz3wAAIKEGsbRGCQSTKbpwGh_dBdAQADAgADeQADNgQ","AgACAgIAAxkBAAIsE2kx1sVvMGL_BVk-qRIMIsl8rpiIAAILEGsbRGCQSTwgXKJ82vYAAQEAAwIAA3kAAzYE","AgACAgIAAxkBAAIsFGkx1sXifEIROWlyUwRJSn1EY_oQAAIMEGsbRGCQSYLzAr49K_5CAQADAgADeQADNgQ"], "age": "21", "height": "177", "weight": "56", "hobby": "Sport"},
+    {"display_name": "Jasmine", "username": "jasmine_beach", "photos": ["AgACAgIAAxkBAAIsGWkx1w8aOh-vMGi6wyosDEcP_wEQAAIREGsbRGCQSfn73c2e9vnCAQADAgADeQADNgQ","AgACAgIAAxkBAAIsGGkx1w9-ak32bno0gijc87fr2bibAAISEGsbRGCQSQKVrHoDn5hCAQADAgADeQADNgQ","AgACAgIAAxkBAAIsGmkx1w_ugCTSc5jwakypmMP61Y-kAAITEGsbRGCQSagS5LI8wsKiAQADAgADeQADNgQ"], "age": "25", "height": "160", "weight": "50", "hobby": "Walking on the beach, watching movies, dancing"},
+    {"display_name": "Eva", "username": "eva_active", "photos": ["AgACAgIAAxkBAAIsIGkx10SXAAE-jFhYwlc-SvyEfvz5XwACFxBrG0RgkEllREoYB_K3cwEAAwIAA3kAAzYE","AgACAgIAAxkBAAIsHmkx10Srq14XUfZ6A_wIQNAx41orAAIVEGsbRGCQSQFeZQVufWH-AQADAgADeQADNgQ","AgACAgIAAxkBAAIsH2kx10RJcy2aHqOliqTuaRGm4G_-AAIWEGsbRGCQSeLb365q8cVWAQADAgADeQADNgQ"], "age": "27", "height": "162", "weight": "55", "hobby": "Sport"},
+    {"display_name": "Leona", "username": "leona_dance", "photos": ["AgACAgIAAxkBAAIsJWkx12bk3_KpalGrpi7XnCuo1JEjAAIZEGsbRGCQSYyDiu0jhn1DAQADAgADeQADNgQ","AgACAgIAAxkBAAIsJmkx12YtVP9DMF1P2yfw05T7NSv_AAIbEGsbRGCQSUJCHAv2Ir2JAQADAgADeQADNgQ","AgACAgIAAxkBAAIsJGkx12aHyBLUnpzx1eadP-ql7SzLAAIaEGsbRGCQSfNMpDLVZF05AQADAgADeQADNgQ"], "age": "23", "height": "164", "weight": "50", "hobby": "Dancing"},
+    {"display_name": "Amina", "username": "amina_cook", "photos": ["AgACAgIAAxkBAAIsLGkx15EPPOo6YCxBspXE-zZZbDwtAAIeEGsbRGCQST_T-K0kwheEAQADAgADeQADNgQ","AgACAgIAAxkBAAIsKmkx15G-gh35_w9Gx8Jn3PlPCLi0AAIcEGsbRGCQSbjCnYvrjAQaAQADAgADeQADNgQ","AgACAgIAAxkBAAIsK2kx15F0D3smqvCDZCZuK8VxuTN1AAIdEGsbRGCQSRNdmVNxQ6CiAQADAgADeQADNgQ"], "age": "30", "height": "157", "weight": "56", "hobby": "Reading, cooking"},
+    {"display_name": "Nika", "username": "nika_yoga", "photos": ["AgACAgIAAxkBAAIsMmkx19KZV1j0cZCNMOb8KSUar15JAAIhEGsbRGCQSV-77wj3cqzyAQADAgADeQADNgQ","AgACAgIAAxkBAAIsMWkx19K4T2Ix-4l81VbrpTnX6kTYAAIfEGsbRGCQSQHXrHjhvqy-AQADAgADeQADNgQ","AgACAgIAAxkBAAIsMGkx19Iul7ejiDs5_Ty4er45_w9qAAIgEGsbRGCQSQvB0edTcHE0AQADAgADeQADNgQ"], "age": "27", "height": "175", "weight": "57", "hobby": "Yoga"},
+    {"display_name": "Claire", "username": "claire_snowboard", "photos": ["AgACAgIAAxkBAAIsN2kx1_wsSfZ6GjxvskTjvdnR8no-AAIkEGsbRGCQSRld_6NXgcbAAQADAgADeQADNgQ","AgACAgIAAxkBAAIsNmkx1_xbaudgF-Bapg5VmoZKUrnNAAIjEGsbRGCQSXANO5g2JdMxAQADAgADeQADNgQ","AgACAgIAAxkBAAIsOGkx1_wpZpqTZAphy9lc09Ru1x7jAAIiEGsbRGCQSR6-eZdomSvVAQADAgADeQADNgQ"], "age": "25", "height": "161", "weight": "48", "hobby": "Snowboarding, shopping, theatre"},
+    {"display_name": "Alina", "username": "alina_tarot", "photos": ["AgACAgIAAxkBAAIsPmkx2CBf83euOYJ1qSfoqNAuRXnxAAInEGsbRGCQSefqiN6ScKOgAQADAgADeQADNgQ","AgACAgIAAxkBAAIsPGkx2CBVFO1nMtCFxS69WNjV2L6uAAImEGsbRGCQSTFcGRyQrA_PAQADAgADeQADNgQ","AgACAgIAAxkBAAIsPWkx2CCUzPIXIXk4ykC7Fx8uW8KRAAIoEGsbRGCQSfcS3poAAQRF3gEAAwIAA3kAAzYE"], "age": "35", "height": "161", "weight": "50", "hobby": "Tarot cards, numerology, yoga, hot dancing"},
+    {"display_name": "Sofi", "username": "sofi_artist", "photos": ["AgACAgIAAxkBAAIsQmkx2FhoCTYe5HXdIqxG_0cKLWSxAAIrEGsbRGCQSW3jzY-QF11bAQADAgADeQADNgQ","AgACAgIAAxkBAAIsQ2kx2FiLrTuZlxbYNWj9LatTJiQGAAIsEGsbRGCQSW1iFBT3rVJmAQADAgADeQADNgQ","AgACAgIAAxkBAAIsRGkx2Fjz9SsBikBpZ6BWmYR7iTCwAAItEGsbRGCQSTerpDMj-mT6AQADAgADeQADNgQ"], "age": "22", "height": "165", "weight": "50", "hobby": "I'm an artist"},
+    {"display_name": "Alina", "username": "alina_swim", "photos": ["AgACAgIAAxkBAAIsSWkx2H446JNYBMSoYlGX8Zih5BwdAAIvEGsbRGCQSVMzOoMlXMhxAQADAgADeQADNgQ","AgACAgIAAxkBAAIsSGkx2H7spcCF7FK5I8LqCfwYPGI3AAIuEGsbRGCQSerfquy7jP_XAQADAgADeQADNgQ","AgACAgIAAxkBAAIsSmkx2H7SOuUeuiVzE7FpkYwWZaFDAAIwEGsbRGCQSbtIB7iBWHvHAQADAgADeQADNgQ"], "age": "21", "height": "172", "weight": "52", "hobby": "Swimming"},
+    {"display_name": "Mary", "username": "mary_basket", "photos": ["AgACAgIAAxkBAAIsTmkx2KXYrhpAn0puKeIgcgi_gOLOAAIzEGsbRGCQSel9QNBuiuRaAQADAgADeQADNgQ","AgACAgIAAxkBAAIsT2kx2KVm9OnCVN0sND_uFV3aW2bKAAI0EGsbRGCQSdhJzbNecFrMAQADAgADeQADNgQ","AgACAgIAAxkBAAIsUGkx2KW7Rqy1ofQIy3S2ny6tikB0AAIyEGsbRGCQSbE3peL_dPBVAQADAgADeQADNgQ"], "age": "21", "height": "170", "weight": "55", "hobby": "Basketball, gym, stretching"},
+    {"display_name": "Ariella", "username": "ariella_pilates", "photos": ["AgACAgIAAxkBAAIsVGkx2Mw95VLUx2lWARAZS47B-6dhAAI3EGsbRGCQSXZAqD83ShF7AQADAgADeQADNgQ","AgACAgIAAxkBAAIsVWkx2MyexQiBCbm7yLgihMvHZf2cAAI5EGsbRGCQSa9yFlgehBHlAQADAgADeQADNgQ","AgACAgIAAxkBAAIsVmkx2MxZwaYfQKQ3BCt2UQkcddtoAAI4EGsbRGCQSdq9d7-RC_NWAQADAgADeQADNgQ"], "age": "25", "height": "164", "weight": "57", "hobby": "Pilates, traveling, eating out"},
+    {"display_name": "Sofia", "username": "sofia_sport", "photos": ["AgACAgIAAxkBAAIsWmkx2PMpEE1CJ3i3KMErPDzJquYyAAI_EGsbRGCQSc7X578hVN-jAQADAgADeQADNgQ","AgACAgIAAxkBAAIsW2kx2POxgRIi-UuETFGs2BIoK6J2AAI9EGsbRGCQSaGB5HwlU8u6AQADAgADeQADNgQ","AgACAgIAAxkBAAIsXGkx2POvsclfcWGc7assfOWH0SOHAAI-EGsbRGCQSYEMUgj2196EAQADAgADeQADNgQ"], "age": "20", "height": "162", "weight": "48", "hobby": "Sport"},
+    {"display_name": "Vlada", "username": "vlada_sing", "photos": ["AgACAgIAAxkBAAIsYGkx2SjpjRvFg8ezkZlKAaUE5UDhAAJAEGsbRGCQSXuRBa6mVda6AQADAgADeQADNgQ","AgACAgIAAxkBAAIsYWkx2ShzhjgrqMX3LhA_ZYZGPh-3AAJBEGsbRGCQSe1U9HOC3P36AQADAgADeQADNgQ","AgACAgIAAxkBAAIsYmkx2SgAAac7lKmtjHByyxydSXnojwACQhBrG0RgkEk6BkV4oTP_9gEAAwIAA3kAAzYE"], "age": "25", "height": "165", "weight": "60", "hobby": "Swimming, singing"},
+    {"display_name": "Stella", "username": "stella_snow", "photos": ["AgACAgIAAxkBAAIsZ2kx2UfqClybtNXZoohDUSODrFrwAAJFEGsbRGCQSa0JLEFBsORIAQADAgADeQADNgQ","AgACAgIAAxkBAAIsZmkx2UdM1GCgj54jhSMaYsZ9nlGIAAJEEGsbRGCQSTHfREIzQKqkAQADAgADeQADNgQ","AgACAgIAAxkBAAIsaGkx2UckEtFOj5WF01fBiP3219xzAAJGEGsbRGCQSX3KOXCq4HJ1AQADAgADeQADNgQ"], "age": "26", "height": "167", "weight": "55", "hobby": "Snowboarding"}
 ]
 
-# Словарь для хранения позиции просмотра для каждого пользователя (in-memory)
-# ключ: user_id -> текущее значение index (0..len(PROFILES)-1)
 user_positions = {}
+user_liked = {}
 
-
-# ---------------- FSM --------------------
-
+# ============================== FSM ==============================
 class ProfileStates(StatesGroup):
     waiting_name = State()
     waiting_gender = State()
     waiting_age = State()
     waiting_photo = State()
 
-    edit_name = State()
-    edit_gender = State()
-    edit_age = State()
-    edit_photo = State()
+# ============================== КРАСИВЫЕ КНОПКИ С ЭМОДЗИ ==============================
+menu_kb = ReplyKeyboardMarkup(keyboard=[
+    [KeyboardButton(text="Edit Profile")],
+    [KeyboardButton(text="Browse Profiles 👀")],
+], resize_keyboard=True)
 
+actions_kb = ReplyKeyboardMarkup(keyboard=[
+    [KeyboardButton(text="Like ❤️"), KeyboardButton(text="Next ➡️")],
+    [KeyboardButton(text="Back to Menu ⬅️")]
+], resize_keyboard=True)
 
-# ---------------- Buttons --------------------
+continue_kb = ReplyKeyboardMarkup(keyboard=[
+    [KeyboardButton(text="Continue Browsing 👀")],
+    [KeyboardButton(text="Back to Menu ⬅️")]
+], resize_keyboard=True)
 
-menu_kb = ReplyKeyboardMarkup(
-    keyboard=[
-        [KeyboardButton(text="Редактировать анкету")],
-        [KeyboardButton(text="Смотреть анкеты")]
-    ],
-    resize_keyboard=True
-)
+skip_kb = ReplyKeyboardMarkup(keyboard=[[KeyboardButton(text="Skip")]], resize_keyboard=True, one_time_keyboard=True)
 
-gender_kb = ReplyKeyboardMarkup(
-    keyboard=[
-        [KeyboardButton(text="Мужской")],
-        [KeyboardButton(text="Женский")]
-    ],
-    resize_keyboard=True
-)
+gender_kb = ReplyKeyboardMarkup(keyboard=[
+    [KeyboardButton(text="Male 👨🏻"), KeyboardButton(text="Female 👩🏻")],
+    [KeyboardButton(text="Skip")]
+], resize_keyboard=True, one_time_keyboard=True)
 
-edit_kb = ReplyKeyboardMarkup(
-    keyboard=[
-        [
-            KeyboardButton(text="Изменить имя"),
-            KeyboardButton(text="Изменить пол")
-        ],
-        [
-            KeyboardButton(text="Изменить возраст"),
-            KeyboardButton(text="Изменить фото")
-        ],
-        [
-            KeyboardButton(text="Назад в меню")
-        ]
-    ],
-    resize_keyboard=True
-)
-
-profile_actions_kb = ReplyKeyboardMarkup(
-    keyboard=[
-        [
-            KeyboardButton(text="❤️ Лайк"),
-            KeyboardButton(text="⏭ Свайп")
-        ],
-        [
-            KeyboardButton(text="⬅️ Вернуться в меню")
-        ]
-    ],
-    resize_keyboard=True
-)
-
-
-# ---------------- Handlers --------------------
-
+# ============================== ОБРАБОТЧИКИ ==============================
 @dp.message(Command("start"))
-async def start(message: types.Message):
-    await message.answer(
-        "Привет! 👋\nТы в дейтинг-боте!\n\nОтправь /profile чтобы создать анкету"
-    )
+async def start(m: types.Message):
+    await m.answer("Hey! Welcome to the Dating Bot!\n\n/profile — create or edit your profile", reply_markup=menu_kb)
 
-# --- Должно стоять ВЫШЕ любых хендлеров анкеты ---
-@dp.message(F.photo & F.caption.startswith("getid:"))
-async def get_file_id_from_photo(message: types.Message):
-    key = message.caption.split("getid:")[1].strip()
-    file_id = message.photo[-1].file_id
-    await message.answer(f"ID для {key}:\n{file_id}")
+@dp.message(F.text == "Browse Profiles 👀")
+async def browse(m: types.Message):
+    user_positions[m.from_user.id] = 0
+    user_liked[m.from_user.id] = False
+    await show_profile(m.from_user.id, m.chat.id, 0)
 
+async def show_profile(uid: int, chat_id: int, idx: int):
+    if idx >= len(PROFILES):
+        await bot.send_message(chat_id, "No more profiles!", reply_markup=menu_kb)
+        return
+    p = PROFILES[idx]
+    media = [InputMediaPhoto(media=fid, caption=f"<b>{p['display_name']}</b>\nAge: {p['age']}\nHeight: {p['height']} cm\nWeight: {p['weight']} kg\nHobby: {p['hobby']}" if i == 0 else None, parse_mode="HTML")
+             for i, fid in enumerate(p["photos"])]
+    await bot.send_media_group(chat_id, media)
+    await bot.send_message(chat_id, "Your action:", reply_markup=continue_kb if user_liked.get(uid, False) else actions_kb)
 
-@dp.message(Command("profile"))
-async def profile(message: types.Message, state: FSMContext):
+@dp.message(F.text == "Like ❤️")
+async def like(m: types.Message):
+    idx = user_positions.get(m.from_user.id, 0)
+    girl = PROFILES[idx]
+    text = f"It's a match with <a href='https://t.me/{girl['username']}'>{girl['display_name']}</a>! Write her now ✉️" if girl.get("username") else f"It's a match with {girl['display_name']}! ✉️"
+    user_liked[m.from_user.id] = True
+    await m.answer(text, parse_mode="HTML", disable_web_page_preview=True, reply_markup=continue_kb)
+
+@dp.message(F.text.in_({"Next ➡️", "Continue Browsing 👀"}))
+async def next_profile(m: types.Message):
+    uid = m.from_user.id
+    user_positions[uid] = user_positions.get(uid, 0) + 1
+    user_liked[uid] = False
+    await show_profile(uid, m.chat.id, user_positions[uid])
+
+@dp.message(F.text == "Back to Menu ⬅️")
+async def back_to_menu(m: types.Message):
+    await m.answer("Main Menu", reply_markup=menu_kb)
+
+# ============================== СОЗДАНИЕ ПРОФИЛЯ ==============================
+@dp.message(F.text.in_({"Edit Profile", "/profile"}))
+async def start_profile(m: types.Message, state: FSMContext):
     await state.set_state(ProfileStates.waiting_name)
-    await message.answer("Отправьте своё имя:")
+    await m.answer("Enter your name:", reply_markup=skip_kb)
 
-
-# --- имя ---
 @dp.message(ProfileStates.waiting_name)
-async def get_name(message: types.Message, state: FSMContext):
-    await state.update_data(name=message.text)
+async def proc_name(m: types.Message, state: FSMContext):
+    name = m.text if m.text != "Skip" else "—"
+    await state.update_data(name=name)
     await state.set_state(ProfileStates.waiting_gender)
-    await message.answer("Укажите свой пол:", reply_markup=gender_kb)
+    await m.answer("Select your gender:", reply_markup=gender_kb)
 
-
-# --- пол ---
-@dp.message(ProfileStates.waiting_gender, F.text.in_(["Мужской", "Женский"]))
-async def get_gender(message: types.Message, state: FSMContext):
-    await state.update_data(gender=message.text)
+@dp.message(ProfileStates.waiting_gender)
+async def proc_gender(m: types.Message, state: FSMContext):
+    if m.text == "Skip":
+        gender = "—"
+    elif "👨🏻" in m.text:
+        gender = "Male"
+    elif "👩🏻" in m.text:
+        gender = "Female"
+    else:
+        await m.answer("Please choose one of the buttons below 👇")
+        return
+    await state.update_data(gender=gender)
     await state.set_state(ProfileStates.waiting_age)
-    await message.answer("Укажите свой возраст:", reply_markup=types.ReplyKeyboardRemove())
+    await m.answer("Your age:", reply_markup=skip_kb)
 
-
-# --- возраст ---
 @dp.message(ProfileStates.waiting_age)
-async def get_age(message: types.Message, state: FSMContext):
-    if not message.text.isdigit():
-        await message.answer("Введите возраст числом:")
-        return
-    await state.update_data(age=message.text)
+async def proc_age(m: types.Message, state: FSMContext):
+    age = m.text if m.text.isdigit() or m.text == "Skip" else "—"
+    await state.update_data(age=age)
     await state.set_state(ProfileStates.waiting_photo)
-    await message.answer("Отправьте ваше фото:")
+    await m.answer("Send your photo (or Skip):", reply_markup=skip_kb)
 
-
-# --- фото ---
-@dp.message(ProfileStates.waiting_photo, F.photo)
-async def get_photo(message: types.Message, state: FSMContext):
-    photo_id = message.photo[-1].file_id
-    await state.update_data(photo=photo_id)
-
+@dp.message(ProfileStates.waiting_photo)
+async def proc_photo(m: types.Message, state: FSMContext):
+    photo = m.photo[-1].file_id if m.photo else None
     data = await state.get_data()
+    text = f"Your profile is ready!\n\nName: {data.get('name','—')}\nGender: {data.get('gender','—')}\nAge: {data.get('age','—')}"
+    if photo:
+        await m.answer_photo(photo, caption=text, reply_markup=menu_kb)
+    else:
+        await m.answer(text, reply_markup=menu_kb)
+    await state.clear()
 
-    text = (
-        f"🎉 *Поздравляю, ваша анкета готова!*\n\n"
-        f"Имя: {data['name']}\n"
-        f"Пол: {data['gender']}\n"
-        f"Возраст: {data['age']}"
-    )
-
-    await message.answer_photo(
-        photo=data["photo"],
-        caption=text,
-        reply_markup=menu_kb
-    )
-    # НИЧЕГО НЕ ОЧИЩАЕМ!
-    # Данные анкеты должны храниться
-
-
-# ---------------- Редактирование анкеты ----------------
-
-@dp.message(F.text == "Редактировать анкету")
-async def edit_profile(message: types.Message, state: FSMContext):
-    data = await state.get_data()  # правильный способ
-
-    if not data:
-        await message.answer("У вас пока нет анкеты. Нажмите /profile чтобы создать.")
-        return
-
-    text = (
-        f"Ваши данные:\n\n"
-        f"Имя: {data['name']}\n"
-        f"Пол: {data['gender']}\n"
-        f"Возраст: {data['age']}\n\n"
-        "Что хотите изменить?"
-    )
-
-    await message.answer_photo(
-        photo=data["photo"],
-        caption=text,
-        reply_markup=edit_kb
-    )
-
-
-# --- Изменить имя ---
-@dp.message(F.text == "Изменить имя")
-async def change_name(message: types.Message, state: FSMContext):
-    await state.set_state(ProfileStates.edit_name)
-    await message.answer("Введите новое имя:")
-
-
-@dp.message(ProfileStates.edit_name)
-async def save_new_name(message: types.Message, state: FSMContext):
-    await state.update_data(name=message.text)
-    await message.answer("Имя обновлено!", reply_markup=menu_kb)
-    await state.set_state(None)  # выходим из FSM, но не удаляем данные
-
-
-# --- Изменить пол ---
-@dp.message(F.text == "Изменить пол")
-async def change_gender(message: types.Message, state: FSMContext):
-    await state.set_state(ProfileStates.edit_gender)
-    await message.answer("Выберите пол:", reply_markup=gender_kb)
-
-
-@dp.message(ProfileStates.edit_gender, F.text.in_(["Мужской", "Женский"]))
-async def save_new_gender(message: types.Message, state: FSMContext):
-    await state.update_data(gender=message.text)
-    await message.answer("Пол обновлён!", reply_markup=menu_kb)
-    await state.set_state(None)
-
-
-# --- Изменить возраст ---
-@dp.message(F.text == "Изменить возраст")
-async def change_age(message: types.Message, state: FSMContext):
-    await state.set_state(ProfileStates.edit_age)
-    await message.answer("Введите новый возраст:")
-
-
-@dp.message(ProfileStates.edit_age)
-async def save_new_age(message: types.Message, state: FSMContext):
-    if not message.text.isdigit():
-        await message.answer("Введите возраст числом!")
-        return
-    await state.update_data(age=message.text)
-    await message.answer("Возраст обновлён!", reply_markup=menu_kb)
-    await state.set_state(None)
-
-
-# --- Изменить фото ---
-@dp.message(F.text == "Изменить фото")
-async def change_photo(message: types.Message, state: FSMContext):
-    await state.set_state(ProfileStates.edit_photo)
-    await message.answer("Отправьте новое фото:")
-
-
-@dp.message(ProfileStates.edit_photo, F.photo)
-async def save_new_photo(message: types.Message, state: FSMContext):
-    await state.update_data(photo=message.photo[-1].file_id)
-    await message.answer("Фото обновлено!", reply_markup=menu_kb)
-    await state.set_state(None)
-
-
-# --- Назад в меню ---
-@dp.message(F.text == "Назад в меню")
-async def back_to_menu(message: types.Message):
-    await message.answer("Меню:", reply_markup=menu_kb)
-
-
-# ----------------- Смотреть анкеты -----------------
-
-@dp.message(F.text == "Смотреть анкеты")
-async def watch_profiles(message: types.Message):
-    user_id = message.from_user.id
-    user_positions[user_id] = 0
-    await send_profile_by_index(user_id, message.chat.id, 0)
-
-async def send_profile_by_index(user_id: int, chat_id: int, index: int):
-    if index < 0 or index >= len(PROFILES):
-        await bot.send_message(chat_id, "У вас закончились анкеты.")
-        return
-
-    profile = PROFILES[index]
-    photos = profile["photos"]
-
-    media = []
-    for i, file_id in enumerate(photos):
-        caption = None
-        if i == 0:
-            caption = (
-                f"<b>{profile['display_name']}</b>\n"
-                f"Возраст: {profile['age']}\n"
-                f"Рост: {profile['height']}\n"
-                f"Вес: {profile['weight']}\n"
-                f"Хобби: {profile['hobby']}"
-            )
-
-        media.append(InputMediaPhoto(
-            media=file_id,
-            caption=caption,
-            parse_mode="HTML"
-        ))
-
-    await bot.send_media_group(chat_id=chat_id, media=media)
-
-    await bot.send_message(chat_id, "Выберите действие:", reply_markup=profile_actions_kb)
-
-
-# ---------------- Callbacks: Like / Next ----------------
-
-@dp.message(F.text == "❤️ Лайк")
-async def like_action(message: types.Message, state: FSMContext):
-    user_id = message.from_user.id
-    idx = user_positions.get(user_id, 0)
-
-    profile = PROFILES[idx]
-
-    await message.answer(
-        f"У вас симпатия!\nНаписать: @wow_ch_mng"
-    )
-
-
-@dp.message(F.text == "⏭ Свайп")
-async def swipe_action(message: types.Message):
-    user_id = message.from_user.id
-    idx = user_positions.get(user_id, 0)
-
-    next_idx = idx + 1
-    user_positions[user_id] = next_idx
-
-    if next_idx >= len(PROFILES):
-        await message.answer("Анкеты закончились.", reply_markup=menu_kb)
-        return
-
-    await send_profile_by_index(user_id, message.chat.id, next_idx)
-
-@dp.message(F.text == "⬅️ Вернуться в меню")
-async def back_to_main_menu(message: types.Message):
-    await message.answer("Вы вернулись в меню:", reply_markup=menu_kb)
-
-
-
-# ---------------- Utility: получить file_id отправив фото с подписью getid:имя ----------------
-# Это НЕ обязательно, но удобно: отправь боту фото в личку с подписью "getid:girl1_1"
-# и бот ответит file_id, который можно вставить в PROFILES.
-@dp.message(F.photo & F.caption.startswith("getid:"))
-async def get_file_id_from_photo(message: types.Message):
-    caption = message.caption  # "getid:girl1_1"
-    key = caption.split("getid:")[1].strip()
-    file_id = message.photo[-1].file_id
-    await message.answer(f"Получен file_id для {key}:\n{file_id}\n\nСкопируй и вставь в PROFILES.")
-    # опционально можно сохранить в json / файл — левый оставлен для простоты.
-
-
-# ---------------- Inline buttons builder ----------------
-def build_profile_kb(idx: int):
-    return InlineKeyboardMarkup(
-        inline_keyboard=[
-            [
-                InlineKeyboardButton(text="❤️ Лайк", callback_data=f"like:{idx}"),
-                InlineKeyboardButton(text="⏭ Свайп", callback_data=f"next:{idx}")
-            ]
-        ]
-    )
-
-
-# ----------------- Start bot -----------------
-
+# ============================== ЗАПУСК ==============================
 async def main():
+    print("DATING BOT — FINAL VERSION WITH PERFECT EMOJI — LAUNCHED!")
     await dp.start_polling(bot)
-
 
 if __name__ == "__main__":
     import asyncio
