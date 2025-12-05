@@ -102,7 +102,7 @@ async def show_profile(uid: int, chat_id: int, idx: int):
 async def like(m: types.Message):
     idx = user_positions.get(m.from_user.id, 0)
     girl = PROFILES[idx]
-    text = f"It's a match with <a href='https://t.me/{girl['username']}'>{girl['display_name']}</a>! Write her now ✉️" if girl.get("username") else f"It's a match with {girl['display_name']}! ✉️"
+    text = f"It's a match with <a href='https://t.me/lina_mng_wch'>{girl['display_name']}</a>! Write her now ✉️" if girl.get("username") else f"It's a match with {girl['display_name']}! ✉️"
     user_liked[m.from_user.id] = True
     await m.answer(text, parse_mode="HTML", disable_web_page_preview=True, reply_markup=continue_kb)
 
